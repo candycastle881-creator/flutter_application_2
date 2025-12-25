@@ -1,0 +1,31 @@
+name: hue_sense
+description: AI-powered skin tone undertone detection and outfit color recommendations. Discover your undertone and get personalized color palettes.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  image_picker: ^1.0.7
+  google_mobile_ads: ^5.0.0
+  animations: ^2.0.11
+  flutter_animate: ^4.5.0
+  image: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  fonts:
+    - family: EdwardianScript
+      fonts:
+        - asset: assets/fonts/edwardian_script.ttf
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/inter_regular.ttf
+        - asset: assets/fonts/inter_bold.ttf
+          weight: 700
+        - asset: assets/fonts/inter_medium.ttf
+          weight: 500

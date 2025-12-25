@@ -1,0 +1,2 @@
+# app-ads.txt for GitHub Pages hosting
+google.com, pub-6695784329123227, DIRECT, f08c47fec0942fa0

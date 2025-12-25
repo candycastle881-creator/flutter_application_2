@@ -1,0 +1,6 @@
+# app-ads.txt / ads.txt record for Hue Sense app
+# Place this file at the root of your developer website (https://yourdomain.com/app-ads.txt)
+# and ensure the Play Store/ App Store listing references your developer website so ad networks
+# can verify your publisher record.
+
+google.com, pub-6695784329123227, DIRECT, f08c47fec0942fa0
