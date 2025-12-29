@@ -19,6 +19,15 @@ android {
         jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
+    signingConfigs {
+        create("release") {
+            keyAlias = "hue_sense_key"
+            keyPassword = "hue_sense_pass"
+            storeFile = file(System.getProperty("user.home") + "/hue_sense_release.keystore")
+            storePassword = "hue_sense_pass"
+        }
+    }
+
     defaultConfig {
         // Unique Application ID for Play Store - change if needed
         applicationId = "com.huesense.app"
@@ -32,9 +41,8 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Use release signing config for Play Store submission
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }

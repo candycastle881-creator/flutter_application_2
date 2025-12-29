@@ -14,8 +14,8 @@ import 'package:image/image.dart' as img;
 const String _bannerAdUnitId_Test = 'ca-app-pub-3940256099942544/6300978111';
 const String _rewardedAdUnitId_Test = 'ca-app-pub-3940256099942544/5224354917';
 // Production IDs (for release builds)
-const String _bannerAdUnitId_Prod = 'ca-app-pub-6695784329123227/XXXXXXXXXX';
-const String _rewardedAdUnitId_Prod = 'ca-app-pub-6695784329123227/YYYYYYYYYY';
+const String _bannerAdUnitId_Prod = 'ca-app-pub-6695784329123227/8146534934';
+const String _rewardedAdUnitId_Prod = 'ca-app-pub-6695784329123227/1927776799';
 
 // Auto-select test IDs for debug, production IDs for release
 final String bannerAdUnitId = kDebugMode ? _bannerAdUnitId_Test : _bannerAdUnitId_Prod;
