@@ -344,6 +344,12 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  @override
+  void dispose() {
+    bannerAd?.dispose();
+    super.dispose();
+  }
+
   List<Color> outfitColors() {
     switch (undertone) {
       case "Warm":
