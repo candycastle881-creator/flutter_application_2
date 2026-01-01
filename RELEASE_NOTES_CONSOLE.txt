@@ -1,0 +1,87 @@
+# Google Play Console - Release Notes for Upload
+
+## Quick Copy-Paste for Play Console
+
+### What to paste in "Release notes" field:
+
+---
+
+🎨 **Hue Sense v1.0.0 - Launch Release**
+
+Discover your perfect colors powered by AI!
+
+✨ **What's Included:**
+• AI-powered undertone detection (Warm, Cool, Neutral)
+• Personalized outfit color recommendations
+• Beautiful Material Design 3 dark theme
+• Smooth 60 FPS animations and transitions
+• Real-time photo analysis
+• Works offline - privacy first
+
+🚀 **Key Features:**
+• Advanced computer vision analyzes your skin tone
+• Instant color recommendations in seconds
+• 24+ curated color palettes
+• Camera capture or gallery selection
+• No data storage - completely private
+
+🎯 **Perfect For:**
+Fashion enthusiasts, makeup lovers, savvy shoppers, professionals - anyone wanting to look their best!
+
+💡 **Why Hue Sense:**
+Wearing colors that match your undertone makes you look healthier, younger, and more vibrant. Simplify your wardrobe, boost your confidence, and never buy the wrong color again.
+
+📱 **Compatible With:**
+All Android devices, API 21+ (Android 5.0+)
+
+Download Hue Sense today and unlock your perfect color palette! 🌟
+
+---
+
+## Alternative - Shorter Version (if character limited):
+
+🎨 Hue Sense v1.0.0 - Launch Release
+
+Discover your perfect colors with AI-powered undertone detection!
+
+✨ Features:
+• AI analyzes your skin tone undertone
+• Get personalized color recommendations
+• Beautiful Material Design 3 interface
+• Smooth 60 FPS animations
+• Privacy-first design
+
+Perfect for fashion lovers, makeup enthusiasts, and anyone wanting to look their best. Download now! 🌟
+
+---
+
+## Alternative - Fun & Casual Version:
+
+🎨 Welcome to Hue Sense v1.0.0!
+
+Your personal color expert, powered by AI! 🤖
+
+Ever wondered which colors look best on you? Hue Sense has the answer!
+
+Just snap a photo (or pick from your gallery) and our smart AI will:
+✨ Detect your skin tone undertone
+🎨 Suggest colors that make you glow
+👗 Help you build a color-coordinated wardrobe
+
+Stop guessing. Start glowing. 💫
+
+Works on all Android devices. Completely private. Totally awesome. ✅
+
+---
+
+## How to Use (for store listing description if needed):
+
+1. **Open Hue Sense** - Launch the app
+2. **Take a Photo** - Use your camera or select from gallery
+3. **Get Your Undertone** - AI analyzes instantly
+4. **See Recommendations** - Browse your perfect colors
+5. **Shop with Confidence** - Know what colors work for you!
+
+---
+
+**Choose the version that fits your Play Store listing style!**

@@ -5,14 +5,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:animations/animations.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image/image.dart' as img;
 
-// Ad Unit IDs - Test/Trial IDs from Google AdMob
-// Banner Ad Unit ID (Test)
-const String bannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
-// Rewarded Ad Unit ID (Test)
-const String rewardedAdUnitId = 'ca-app-pub-3940256099942544/5224354917';
+// Ad Unit IDs - Update with your production IDs from AdMob console
+// Test IDs (for debug builds)
+const String _bannerAdUnitId_Test = 'ca-app-pub-3940256099942544/6300978111';
+const String _rewardedAdUnitId_Test = 'ca-app-pub-3940256099942544/5224354917';
+// Production IDs (for release builds)
+const String _bannerAdUnitId_Prod = 'ca-app-pub-6695784329123227/8146534934';
+const String _rewardedAdUnitId_Prod = 'ca-app-pub-6695784329123227/1927776799';
+
+// Auto-select test IDs for debug, production IDs for release
+final String bannerAdUnitId = kDebugMode ? _bannerAdUnitId_Test : _bannerAdUnitId_Prod;
+final String rewardedAdUnitId = kDebugMode ? _rewardedAdUnitId_Test : _rewardedAdUnitId_Prod;
 final List<List<Color>> warmPalettes = [
   [Color(0xFFC65D3A), Color(0xFFFFF1D6), Color(0xFF6B8E23)],
   [Color(0xFFCC5500), Color(0xFFC19A6B), Color(0xFFFFFFF0)],
@@ -126,6 +133,7 @@ final List<List<Color>> neutralPalettes = [
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await MobileAds.instance.initialize();
   runApp(const HueSenseApp());
 }
 
@@ -177,93 +185,6 @@ class GlassContainer extends StatelessWidget {
   }
 }
 
-// Animated Apple-style gradient background
-class AnimatedBackground extends StatefulWidget {
-  const AnimatedBackground({super.key});
-
-  @override
-  State<AnimatedBackground> createState() => _AnimatedBackgroundState();
-}
-
-class _AnimatedBackgroundState extends State<AnimatedBackground>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(seconds: 20),
-      vsync: this,
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return CustomPaint(
-          painter: AppleGradientPainter(_controller.value),
-          size: Size.infinite,
-        );
-      },
-    );
-  }
-}
-
-class AppleGradientPainter extends CustomPainter {
-  final double animationValue;
-
-  AppleGradientPainter(this.animationValue);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Create warm palette colors (cream, beige, brown, taupe, caramel)
-    final paletteColors = [
-      const Color(0xFFFFFDD0), // Cream
-      const Color(0xFFF5F5DC), // Beige
-      const Color(0xFFD2B48C), // Tan
-      const Color(0xFFC19A6B), // Caramel
-      const Color(0xFFA0826D), // Taupe
-      const Color(0xFF8B7355), // Brown
-      const Color(0xFF6F4E37), // Coffee Brown
-    ];
-
-    // Animate the gradient position (left to right, 8-second cycle)
-    final offset = size.width * animationValue;
-
-    // Create blurred gradient with warm palette colors
-    final gradientPaint = Paint()
-      ..shader = ui.Gradient.linear(
-        Offset(offset - size.width, 0),
-        Offset(offset + size.width, 0),
-        paletteColors,
-        [0.0, 0.166, 0.333, 0.5, 0.666, 0.833, 1.0],
-      )
-      ..maskFilter = const ui.MaskFilter.blur(ui.BlurStyle.normal, 40.0);
-
-    // Draw blurred gradient
-    canvas.drawRect(
-        Rect.fromLTWH(0, 0, size.width, size.height), gradientPaint);
-
-    // Draw darker overlay for better contrast with white text
-    final overlayPaint = Paint()..color = Colors.black.withOpacity(0.65);
-    canvas.drawRect(Rect.fromLTWH(0, 0, size.width, size.height), overlayPaint);
-  }
-
-  @override
-  bool shouldRepaint(AppleGradientPainter oldDelegate) {
-    return oldDelegate.animationValue != animationValue;
-  }
-}
-
 class HueSenseApp extends StatelessWidget {
   const HueSenseApp({super.key});
 
@@ -275,8 +196,8 @@ class HueSenseApp extends StatelessWidget {
       theme: ThemeData.dark().copyWith(
         useMaterial3: true,
         textTheme: ThemeData.dark().textTheme.apply(
-              fontFamily: 'LoremIpsum',
-            ),
+          fontFamily: 'Inter',
+        ),
         scaffoldBackgroundColor: const Color(0xFF0E0E10),
       ),
       home: const HomePage(),
@@ -297,10 +218,17 @@ class _HomePageState extends State<HomePage> {
   bool proUnlocked = false;
 
   final ImagePicker picker = ImagePicker();
+  BannerAd? bannerAd;
 
   @override
   void initState() {
     super.initState();
+    bannerAd = BannerAd(
+      size: AdSize.banner,
+      adUnitId: bannerAdUnitId,
+      listener: BannerAdListener(),
+      request: const AdRequest(),
+    )..load();
   }
 
   Future<void> pickImage(ImageSource source) async {
@@ -337,28 +265,28 @@ class _HomePageState extends State<HomePage> {
     // Real pixel-based undertone detection from the image
     // Samples cheek area (face approximation: lower-center region)
     if (image == null) return "Neutral";
-
+    
     try {
       final imageBytes = image!.readAsBytesSync();
       final decodedImage = img.decodeImage(imageBytes);
       if (decodedImage == null) return "Neutral";
-
+      
       // Approximate cheek area: lower-left and lower-right regions
       // Typical face position: center-upper area of image
       final leftCheekX = decodedImage.width ~/ 3;
       final rightCheekX = (decodedImage.width * 2) ~/ 3;
       final cheekY = (decodedImage.height * 0.55);
-
+      
       int redSum = 0, greenSum = 0, blueSum = 0;
       int sampleCount = 0;
-
+      
       // Sample left cheek
       for (int x = (leftCheekX - 60).clamp(0, decodedImage.width - 1);
-          x < (leftCheekX + 60).clamp(0, decodedImage.width);
-          x++) {
+           x < (leftCheekX + 60).clamp(0, decodedImage.width);
+           x++) {
         for (int y = (cheekY.toInt() - 60).clamp(0, decodedImage.height - 1);
-            y < (cheekY.toInt() + 60).clamp(0, decodedImage.height);
-            y++) {
+             y < (cheekY.toInt() + 60).clamp(0, decodedImage.height);
+             y++) {
           final pixel = decodedImage.getPixelSafe(x, y);
           redSum += (pixel.r as num).toInt();
           greenSum += (pixel.g as num).toInt();
@@ -366,14 +294,14 @@ class _HomePageState extends State<HomePage> {
           sampleCount++;
         }
       }
-
+      
       // Sample right cheek
       for (int x = (rightCheekX - 60).clamp(0, decodedImage.width - 1);
-          x < (rightCheekX + 60).clamp(0, decodedImage.width);
-          x++) {
+           x < (rightCheekX + 60).clamp(0, decodedImage.width);
+           x++) {
         for (int y = (cheekY.toInt() - 60).clamp(0, decodedImage.height - 1);
-            y < (cheekY.toInt() + 60).clamp(0, decodedImage.height);
-            y++) {
+             y < (cheekY.toInt() + 60).clamp(0, decodedImage.height);
+             y++) {
           final pixel = decodedImage.getPixelSafe(x, y);
           redSum += (pixel.r as num).toInt();
           greenSum += (pixel.g as num).toInt();
@@ -381,13 +309,13 @@ class _HomePageState extends State<HomePage> {
           sampleCount++;
         }
       }
-
+      
       if (sampleCount == 0) return "Neutral";
-
+      
       final avgRed = redSum ~/ sampleCount;
       final avgGreen = greenSum ~/ sampleCount;
       final avgBlue = blueSum ~/ sampleCount;
-
+      
       // Analyze undertone: if Red is significantly higher → Warm; Blue higher → Cool
       // For skin tone: warm has higher Red, cool has higher Blue/Green
       final warmth = avgRed - avgBlue;
@@ -400,12 +328,25 @@ class _HomePageState extends State<HomePage> {
   }
 
   void unlockPro() {
-    // Pro unlocked instantly (ad-free family friendly app)
-    setState(() => proUnlocked = true);
+    RewardedAd.load(
+      adUnitId: rewardedAdUnitId,
+      request: const AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (ad) {
+          ad.show(
+            onUserEarnedReward: (_, __) {
+              setState(() => proUnlocked = true);
+            },
+          );
+        },
+        onAdFailedToLoad: (error) {},
+      ),
+    );
   }
 
   @override
   void dispose() {
+    bannerAd?.dispose();
     super.dispose();
   }
 
@@ -422,227 +363,180 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        // Animated ROYGBIV background
-        Positioned.fill(
-          child: const AnimatedBackground(),
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF0A0E27),
+            Color(0xFF1a1f4d),
+            Color(0xFF0f1e3f),
+            Color(0xFF1a3a52),
+          ],
+          stops: [0.0, 0.3, 0.6, 1.0],
         ),
-        // Main content
-        Scaffold(
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
           backgroundColor: Colors.transparent,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            centerTitle: true,
-            title: const Text(
-              'Hue Sense',
-              style: TextStyle(
-                fontFamily: 'LoremIpsum',
-                fontSize: 28,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.2,
-                color: Colors.white,
-              ),
+          elevation: 0,
+          centerTitle: true,
+          title: const Text(
+            'Hue Sense',
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: 28,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.2,
+              color: Colors.white,
             ),
           ),
-          body: SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(vertical: 24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 60),
-                    const Text(
-                      'Hue Sense',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 40,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                        letterSpacing: -0.5,
+        ),
+        bottomNavigationBar: bannerAd == null
+            ? null
+            : SizedBox(
+                height: bannerAd!.size.height.toDouble(),
+                child: AdWidget(ad: bannerAd!),
+              ),
+        body: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 28),
+
+                  OpenContainer(
+                    transitionDuration: const Duration(milliseconds: 600),
+                    closedColor: Colors.transparent,
+                    openColor: Colors.transparent,
+                    closedBuilder: (_, open) => GestureDetector(
+                      onTap: open,
+                      child: Container(
+                        height: 260,
+                        width: 260,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(30),
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF1F1C2C), Color(0xFF928DAB)],
+                          ),
+                        ),
+                        child: image == null
+                            ? const Center(child: Text("Tap to Scan", style: TextStyle(color: Colors.white70)))
+                            : ClipRRect(
+                                borderRadius: BorderRadius.circular(30),
+                                child: Image.file(image!, fit: BoxFit.cover),
+                              ),
                       ),
                     ),
-                    const SizedBox(height: 32),
-                    OpenContainer(
-                      transitionDuration: const Duration(milliseconds: 350),
-                      closedColor: Colors.transparent,
-                      openColor: Colors.transparent,
-                      closedBuilder: (_, open) => GestureDetector(
-                        onTap: open,
-                        child: Container(
-                          height: 260,
-                          width: 260,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(30),
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.white.withOpacity(0.15),
-                                Colors.white.withOpacity(0.05),
+                    openBuilder: (_, __) => FullImagePage(
+                      image: image,
+                      onCamera: () => pickImage(ImageSource.camera),
+                      onGallery: () => pickImage(ImageSource.gallery),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).push(
+                        LiquidPageRoute(
+                          builder: (_) => OutfitSuggestionsScreen(
+                            undertone: undertone,
+                            proUnlocked: proUnlocked,
+                            onUnlock: unlockPro,
+                          ),
+                        ),
+                      );
+                    },
+                    child: GlassContainer(
+                      margin: const EdgeInsets.symmetric(horizontal: 32),
+                      padding: const EdgeInsets.all(14),
+                      height: 120,
+                      borderRadius: 14,
+                      blurAmount: 0,
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 64,
+                            height: 64,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              gradient: const LinearGradient(
+                                colors: [Colors.cyanAccent, Colors.purpleAccent],
+                              ),
+                            ),
+                            child: const Icon(Icons.palette, color: Colors.black, size: 34),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text(
+                                  'Outfit Color Suggestions',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  proUnlocked
+                                      ? 'Personalized for your undertone'
+                                      : 'Unlock with Premium or Watch Ad',
+                                  style: const TextStyle(fontSize: 12, color: Colors.white70),
+                                ),
                               ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
-                              width: 1.5,
                             ),
                           ),
-                          child: image == null
-                              ? const Center(
-                                  child: Text(
-                                    "Tap to Scan",
-                                    style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                )
-                              : ClipRRect(
-                                  borderRadius: BorderRadius.circular(30),
-                                  child: Image.file(image!, fit: BoxFit.cover),
-                                ),
-                        ),
-                      ),
-                      openBuilder: (_, closeContainer) => SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(0, 1),
-                          end: Offset.zero,
-                        ).animate(
-                          CurvedAnimation(
-                            parent: ModalRoute.of(_)!.animation!,
-                            curve: Curves.easeOutCubic,
+                          const SizedBox(width: 8),
+                          Icon(
+                            proUnlocked ? Icons.lock_open : Icons.lock,
+                            color: proUnlocked ? Colors.greenAccent : Colors.orangeAccent,
                           ),
-                        ),
-                        child: FullImagePage(
-                          image: image,
-                          onCamera: () => pickImage(ImageSource.camera),
-                          onGallery: () => pickImage(ImageSource.gallery),
-                        ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).push(
-                          PageRouteBuilder(
-                            transitionDuration:
-                                const Duration(milliseconds: 400),
-                            pageBuilder: (_, animation, __) =>
-                                OutfitSuggestionsScreen(
-                              undertone: undertone,
-                              proUnlocked: proUnlocked,
-                              onUnlock: unlockPro,
-                            ),
-                            transitionsBuilder: (_, animation, __, child) =>
-                                SlideTransition(
-                              position: Tween<Offset>(
-                                begin: const Offset(1, 0),
-                                end: Offset.zero,
-                              ).animate(
-                                CurvedAnimation(
-                                  parent: animation,
-                                  curve: Curves.easeOutCubic,
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  if (undertone.isNotEmpty && !proUnlocked)
+                    ElevatedButton(
+                      onPressed: unlockPro,
+                      child: const Text("Unlock Outfit Colors (Watch Ad)"),
+                    ),
+
+                  if (proUnlocked)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: outfitColors()
+                            .map(
+                              (c) => Container(
+                                margin: const EdgeInsets.all(8),
+                                width: 50,
+                                height: 50,
+                                decoration: BoxDecoration(
+                                  color: c,
+                                  shape: BoxShape.circle,
                                 ),
-                              ),
-                              child: child,
-                            ),
-                          ),
-                        );
-                      },
-                      child: GlassContainer(
-                        margin: const EdgeInsets.symmetric(horizontal: 32),
-                        padding: const EdgeInsets.all(14),
-                        height: 120,
-                        borderRadius: 14,
-                        blurAmount: 0,
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 64,
-                              height: 64,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    Colors.cyanAccent,
-                                    Colors.purpleAccent
-                                  ],
-                                ),
-                              ),
-                              child: const Icon(Icons.palette,
-                                  color: Colors.black, size: 34),
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Text(
-                                    'Outfit Color Suggestions',
-                                    style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    proUnlocked
-                                        ? 'Personalized for your undertone'
-                                        : 'Unlock with Premium or Watch Ad',
-                                    style: const TextStyle(
-                                        fontSize: 12, color: Colors.white70),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Icon(
-                              proUnlocked ? Icons.lock_open : Icons.lock,
-                              color: proUnlocked
-                                  ? Colors.greenAccent
-                                  : Colors.orangeAccent,
-                            ),
-                          ],
-                        ),
+                              ).animate().scale(),
+                            )
+                            .toList(),
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    if (undertone.isNotEmpty && !proUnlocked)
-                      ElevatedButton(
-                        onPressed: unlockPro,
-                        child: const Text("Unlock Outfit Colors (Watch Ad)"),
-                      ),
-                    if (proUnlocked)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: outfitColors()
-                              .map(
-                                (c) => Container(
-                                  margin: const EdgeInsets.all(8),
-                                  width: 50,
-                                  height: 50,
-                                  decoration: BoxDecoration(
-                                    color: c,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ).animate().scale(),
-                              )
-                              .toList(),
-                        ),
-                      ),
-                  ],
-                ),
+                ],
               ),
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 }
@@ -678,11 +572,9 @@ class FullImagePage extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.camera_alt,
-                        size: 64, color: Colors.white54),
+                    const Icon(Icons.camera_alt, size: 64, color: Colors.white54),
                     const SizedBox(height: 16),
-                    const Text('Select photo',
-                        style: TextStyle(color: Colors.white54)),
+                    const Text('Select photo', style: TextStyle(color: Colors.white54)),
                   ],
                 ),
               ),
@@ -702,8 +594,7 @@ class FullImagePage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.camera_alt,
-                      size: 32, color: Colors.white),
+                  icon: const Icon(Icons.camera_alt, size: 32, color: Colors.white),
                   onPressed: onCamera,
                 ),
                 IconButton(
@@ -745,16 +636,12 @@ class GridPainter extends CustomPainter {
     final cellHeight = size.height / 3;
 
     // Vertical lines
-    canvas.drawLine(
-        Offset(cellWidth, 0), Offset(cellWidth, size.height), paint);
-    canvas.drawLine(
-        Offset(cellWidth * 2, 0), Offset(cellWidth * 2, size.height), paint);
+    canvas.drawLine(Offset(cellWidth, 0), Offset(cellWidth, size.height), paint);
+    canvas.drawLine(Offset(cellWidth * 2, 0), Offset(cellWidth * 2, size.height), paint);
 
     // Horizontal lines
-    canvas.drawLine(
-        Offset(0, cellHeight), Offset(size.width, cellHeight), paint);
-    canvas.drawLine(
-        Offset(0, cellHeight * 2), Offset(size.width, cellHeight * 2), paint);
+    canvas.drawLine(Offset(0, cellHeight), Offset(size.width, cellHeight), paint);
+    canvas.drawLine(Offset(0, cellHeight * 2), Offset(size.width, cellHeight * 2), paint);
   }
 
   @override
@@ -788,34 +675,21 @@ class ResultScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (image != null)
-                ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Image.file(image!,
-                        width: 220, height: 220, fit: BoxFit.cover)),
+                ClipRRect(borderRadius: BorderRadius.circular(16), child: Image.file(image!, width: 220, height: 220, fit: BoxFit.cover)),
               const SizedBox(height: 16),
-              Text('Undertone: $undertone',
-                  style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white)),
+              Text('Undertone: $undertone', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: Colors.orangeAccent)),
               const SizedBox(height: 12),
               const Text('Shade: Medium', style: TextStyle(fontSize: 16)),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
                   if (proUnlocked) {
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (_) => OutfitSuggestionsScreen(
-                            undertone: undertone,
-                            proUnlocked: proUnlocked,
-                            onUnlock: onUnlock)));
+                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => OutfitSuggestionsScreen(undertone: undertone, proUnlocked: proUnlocked, onUnlock: onUnlock)));
                   } else {
                     onUnlock();
                   }
                 },
-                child: Text(proUnlocked
-                    ? 'View Outfit Suggestions'
-                    : 'Watch Ad to Unlock Outfit Suggestions'),
+                child: Text(proUnlocked ? 'View Outfit Suggestions' : 'Watch Ad to Unlock Outfit Suggestions'),
               ),
             ],
           ),
@@ -838,8 +712,7 @@ class OutfitSuggestionsScreen extends StatefulWidget {
   });
 
   @override
-  State<OutfitSuggestionsScreen> createState() =>
-      _OutfitSuggestionsScreenState();
+  State<OutfitSuggestionsScreen> createState() => _OutfitSuggestionsScreenState();
 }
 
 class _OutfitSuggestionsScreenState extends State<OutfitSuggestionsScreen> {
@@ -862,22 +735,15 @@ class _OutfitSuggestionsScreenState extends State<OutfitSuggestionsScreen> {
     // Return palettes based on undertone
     switch (widget.undertone) {
       case "Warm":
-        return warmPalettes
-            .map((p) => {'shirt': p[0], 'pant': p[1], 'accent': p[2]})
-            .toList();
+        return warmPalettes.map((p) => {'shirt': p[0], 'pant': p[1], 'accent': p[2]}).toList();
       case "Cool":
-        return coolPalettes
-            .map((p) => {'shirt': p[0], 'pant': p[1], 'accent': p[2]})
-            .toList();
+        return coolPalettes.map((p) => {'shirt': p[0], 'pant': p[1], 'accent': p[2]}).toList();
       default:
-        return neutralPalettes
-            .map((p) => {'shirt': p[0], 'pant': p[1], 'accent': p[2]})
-            .toList();
+        return neutralPalettes.map((p) => {'shirt': p[0], 'pant': p[1], 'accent': p[2]}).toList();
     }
   }
 
-  String _hex(Color c) =>
-      '#${(c.value & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
+  String _hex(Color c) => '#${(c.value & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
 
   // Simple heuristic: classify a color as warm/cool/neutral
   String _temp(Color c) {
@@ -899,8 +765,7 @@ class _OutfitSuggestionsScreenState extends State<OutfitSuggestionsScreen> {
   @override
   Widget build(BuildContext context) {
     final tone = widget.undertone.isEmpty ? 'Neutral' : widget.undertone;
-    final suggestions =
-        widget.proUnlocked ? _topPalettesForTone(tone) : <Map<String, Color>>[];
+    final suggestions = widget.proUnlocked ? _topPalettesForTone(tone) : <Map<String, Color>>[];
 
     return Scaffold(
       appBar: AppBar(title: const Text('Outfit Suggestions')),
@@ -910,9 +775,7 @@ class _OutfitSuggestionsScreenState extends State<OutfitSuggestionsScreen> {
             ? Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('Top 10 palettes for $tone',
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.w600)),
+                  Text('Top 10 palettes for $tone', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 12),
                   Expanded(
                     child: ListView.separated(
@@ -931,74 +794,33 @@ class _OutfitSuggestionsScreenState extends State<OutfitSuggestionsScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('#${idx + 1} - $tone Outfit',
-                                  style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white)),
+                              Text('#${idx + 1} - $tone Outfit', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.cyanAccent)),
                               const SizedBox(height: 12),
                               Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
                                   Column(
                                     children: [
-                                      Container(
-                                          width: 56,
-                                          height: 56,
-                                          decoration: BoxDecoration(
-                                              color: shirt,
-                                              borderRadius:
-                                                  BorderRadius.circular(8))),
+                                      Container(width: 56, height: 56, decoration: BoxDecoration(color: shirt, borderRadius: BorderRadius.circular(8))),
                                       const SizedBox(height: 6),
-                                      const Text('Shirt',
-                                          style: TextStyle(
-                                              fontSize: 11,
-                                              color: Colors.white70)),
-                                      Text(_hex(shirt),
-                                          style: const TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w600)),
+                                      const Text('Shirt', style: TextStyle(fontSize: 11, color: Colors.white70)),
+                                      Text(_hex(shirt), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
                                     ],
                                   ),
                                   Column(
                                     children: [
-                                      Container(
-                                          width: 56,
-                                          height: 56,
-                                          decoration: BoxDecoration(
-                                              color: pant,
-                                              borderRadius:
-                                                  BorderRadius.circular(8))),
+                                      Container(width: 56, height: 56, decoration: BoxDecoration(color: pant, borderRadius: BorderRadius.circular(8))),
                                       const SizedBox(height: 6),
-                                      const Text('Pant',
-                                          style: TextStyle(
-                                              fontSize: 11,
-                                              color: Colors.white70)),
-                                      Text(_hex(pant),
-                                          style: const TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w600)),
+                                      const Text('Pant', style: TextStyle(fontSize: 11, color: Colors.white70)),
+                                      Text(_hex(pant), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
                                     ],
                                   ),
                                   Column(
                                     children: [
-                                      Container(
-                                          width: 56,
-                                          height: 56,
-                                          decoration: BoxDecoration(
-                                              color: accent,
-                                              borderRadius:
-                                                  BorderRadius.circular(8))),
+                                      Container(width: 56, height: 56, decoration: BoxDecoration(color: accent, borderRadius: BorderRadius.circular(8))),
                                       const SizedBox(height: 6),
-                                      const Text('Accent',
-                                          style: TextStyle(
-                                              fontSize: 11,
-                                              color: Colors.white70)),
-                                      Text(_hex(accent),
-                                          style: const TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w600)),
+                                      const Text('Accent', style: TextStyle(fontSize: 11, color: Colors.white70)),
+                                      Text(_hex(accent), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
                                     ],
                                   ),
                                 ],
@@ -1015,12 +837,9 @@ class _OutfitSuggestionsScreenState extends State<OutfitSuggestionsScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.lock,
-                        size: 72, color: Colors.orangeAccent),
+                    const Icon(Icons.lock, size: 72, color: Colors.orangeAccent),
                     const SizedBox(height: 12),
-                    const Text('Content Locked',
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.w600)),
+                    const Text('Content Locked', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 8),
                     const Text('Return to main menu to unlock'),
                     const SizedBox(height: 20),

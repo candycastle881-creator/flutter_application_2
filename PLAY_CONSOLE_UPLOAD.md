@@ -1,17 +1,21 @@
 # 🚀 Google Play Console Upload Guide - Hue Sense
 
-**Date:** December 29, 2025  
+**Date:** December 30, 2025  
 **Version:** 1.0.0 (Build 1)  
 **Status:** ✅ READY FOR UPLOAD
 
+**Play Console Dashboard**: https://play.google.com/console/u/0/developers/8810828762314872533/app/4975243458261825564/app-dashboard
+
 ---
 
-## 📦 What You Have Ready
+## 📦 Final Build Ready
 
-### ✅ Build Files
-- **App Bundle (AAB):** `build/app/outputs/bundle/release/app-release.aab` (44.5 MB) ✅
-- **APK (alternative):** `build/app/outputs/flutter-apk/app-release.apk` (47 MB) ✅
-- **Signing:** Release keystore configured at `~/hue_sense_release.keystore` ✅
+### ✅ Release APK
+- **File:** `build/app/outputs/flutter-apk/app-release.apk`
+- **Size:** 48 MB
+- **Build Date:** 30 December 2025 15:24
+- **Status:** ✅ Production-ready
+- **Ad Units:** All production IDs active
 
 ### ✅ Configuration
 - **App Name:** Hue Sense
@@ -19,35 +23,57 @@
 - **Version Code:** 1
 - **Version Name:** 1.0.0
 - **Min SDK:** 21 (Android 5.0)
-- **Target SDK:** Latest
-
-### ✅ Documentation Files (in repo)
-- **Privacy Policy:** `docs/privacy.md` (ready for GitHub Pages)
-- **app-ads.txt:** `assets/app-ads.txt` and `docs/app-ads.txt` ✅
-- **All code:** Pushed to https://github.com/candycastle881-creator/flutter_application_2
-
----
-
-## 🔗 URLs You Need
-
-| Item | URL | Status |
-|------|-----|--------|
-| **GitHub Repo** | https://github.com/candycastle881-creator/flutter_application_2 | ✅ Pushed |
-| **Privacy Policy** | `https://candycastle881-creator.github.io/flutter_application_2/privacy` | ⚠️ Enable Pages first |
-| **Developer Website** | `https://candycastle881-creator.github.io/flutter_application_2` | ⚠️ Enable Pages first |
-| **app-ads.txt** | `https://candycastle881-creator.github.io/flutter_application_2/app-ads.txt` | ⚠️ Enable Pages first |
-| **AdMob Console** | https://admob.google.com | ⚠️ Get ad unit IDs |
-| **Play Console** | https://play.google.com/console | 🎯 Upload here |
+- **Target SDK:** 34 (Android 14)
+- **AdMob Publisher ID:** 6695784329123227
+- **Banner Ad Unit:** ca-app-pub-6695784329123227/8146534934
+- **Rewarded Ad Unit:** ca-app-pub-6695784329123227/1927776799
+- **App ID (AndroidManifest):** ca-app-pub-6695784329123227~5379471848
 
 ---
 
-## ⚡ BEFORE YOU UPLOAD - Final Checklist
+## 🎯 QUICK UPLOAD (3 Steps)
 
-### 1️⃣ Enable GitHub Pages (2 minutes)
-**Why:** Host privacy policy and app-ads.txt for Play Store and AdMob.
+### ✅ Step 1: Go to Play Console
+**URL:** https://play.google.com/console  
+**Then:** Your Hue Sense app → Release → Production
 
-**Steps:**
-1. Go to https://github.com/candycastle881-creator/flutter_application_2/settings/pages
+### ✅ Step 2: Upload APK
+1. Click **Create new release**
+2. Click **Browse files** and select:
+   ```
+   build/app/outputs/flutter-apk/app-release.apk
+   ```
+3. Wait for upload to complete (~30 seconds)
+4. Google Play auto-detects version 1.0.0 (Build 1)
+
+### ✅ Step 3: Add Release Notes & Publish
+1. In **Release notes** field, paste:
+   ```
+   🎨 Hue Sense v1.0.0 - Launch Release
+   
+   Discover your perfect colors powered by AI!
+   
+   ✨ Features:
+   • AI-powered undertone detection (warm, cool, neutral)
+   • Personalized outfit color recommendations
+   • Beautiful Material Design 3 interface
+   • Smooth 60 FPS animations
+   • Works with camera or gallery photos
+   
+   🚀 Ready for download on all Android devices (API 21+)
+   ```
+2. Review all app info (already filled)
+3. Click **Review and publish**
+4. Click **Publish to Production**
+5. ✅ Your app is live!
+
+**Estimated time: 5 minutes**
+
+---
+
+## 📋 Pre-Upload Verification
+
+
 2. Under "Build and deployment":
    - Source: **Deploy from a branch**
    - Branch: **main**

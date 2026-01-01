@@ -1,6 +1,6 @@
 # Privacy Policy - Hue Sense
 
-**Last updated:** December 29, 2025
+**Last updated:** December 30, 2025
 
 ## Overview
 
@@ -8,12 +8,12 @@ Hue Sense respects your privacy. This Privacy Policy explains how the app collec
 
 ## Data Collection
 
-- Hue Sense does NOT collect, store, or transmit any photos or personal data to external servers by default.
+- Hue Sense does NOT collect, store, or transmit photos or personal data to external servers by default.
 - All image processing (undertone detection and color analysis) is performed locally on the user's device.
 
 ## Ads and Third-Party Services
 
-- The app uses Google AdMob to display advertisements. AdMob may collect anonymous device and usage data as described in Google's policies.
+- The app uses Google AdMob to display advertisements. AdMob may collect device and usage data as described in Google's policies.
 - For details about how Google collects and uses data, see: https://policies.google.com/privacy
 
 ## Permissions
@@ -36,4 +36,4 @@ We may update this policy from time to time. When we do, we will post the new po
 
 ---
 
-This file is intended to be served from GitHub Pages or your website (for example: `https://<username>.github.io/flutter_application_2/privacy`) and used as the Privacy Policy URL when creating the Play Store listing.
+This policy is served at: https://candycastle881-creator.github.io/flutter_application_2/privacy and should be used as the Privacy Policy URL in the Play Store listing.
