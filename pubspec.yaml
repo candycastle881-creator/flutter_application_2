@@ -1,7 +1,7 @@
 name: hue_sense
 description: AI-powered skin tone undertone detection and outfit color recommendations. Discover your undertone and get personalized color palettes.
 publish_to: 'none'
-version: 1.0.2+3
+version: 1.0.3+4
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
@@ -11,6 +11,7 @@ dependencies:
     sdk: flutter
 
   image_picker: ^1.0.7
+  google_mobile_ads: ^5.0.0
   animations: ^2.0.11
   flutter_animate: ^4.5.0
   image: ^4.0.0

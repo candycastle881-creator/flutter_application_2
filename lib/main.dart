@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:animations/animations.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image/image.dart' as img;
 
@@ -126,6 +127,7 @@ final List<List<Color>> neutralPalettes = [
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await MobileAds.instance.initialize();
   runApp(const HueSenseApp());
 }
 
@@ -297,10 +299,17 @@ class _HomePageState extends State<HomePage> {
   bool proUnlocked = false;
 
   final ImagePicker picker = ImagePicker();
+  BannerAd? bannerAd;
 
   @override
   void initState() {
     super.initState();
+    bannerAd = BannerAd(
+      size: AdSize.banner,
+      adUnitId: bannerAdUnitId,
+      listener: BannerAdListener(),
+      request: const AdRequest(),
+    )..load();
   }
 
   Future<void> pickImage(ImageSource source) async {
@@ -400,12 +409,25 @@ class _HomePageState extends State<HomePage> {
   }
 
   void unlockPro() {
-    // Pro unlocked instantly (ad-free family friendly app)
-    setState(() => proUnlocked = true);
+    RewardedAd.load(
+      adUnitId: rewardedAdUnitId,
+      request: const AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (ad) {
+          ad.show(
+            onUserEarnedReward: (_, __) {
+              setState(() => proUnlocked = true);
+            },
+          );
+        },
+        onAdFailedToLoad: (error) {},
+      ),
+    );
   }
 
   @override
   void dispose() {
+    bannerAd?.dispose();
     super.dispose();
   }
 
@@ -446,6 +468,12 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
+          bottomNavigationBar: bannerAd == null
+              ? null
+              : SizedBox(
+                  height: bannerAd!.size.height.toDouble(),
+                  child: AdWidget(ad: bannerAd!),
+                ),
           body: SafeArea(
             child: Center(
               child: SingleChildScrollView(
